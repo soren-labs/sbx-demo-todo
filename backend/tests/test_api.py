@@ -116,6 +116,16 @@ def test_ids_do_not_reuse_after_delete(client: TestClient):
     assert second["id"] == 2
 
 
-def test_index_without_frontend(client: TestClient):
+def test_index_serves_frontend(client: TestClient):
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.text
+    assert 'data-testid="todo-input"' in html
+    assert 'data-testid="todo-add"' in html
+    assert 'data-testid="todo-list"' in html
+
+
+def test_index_without_frontend(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path):
+    monkeypatch.setattr("backend.app.FRONTEND_DIR", tmp_path / "missing")
     response = client.get("/")
     assert response.status_code == 404
